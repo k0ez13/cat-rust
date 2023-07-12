@@ -1,0 +1,8 @@
+[package]
+name = "CAT-RUST    "
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+crossterm = "0.26.1"
+textwrap = "0.16.0"
