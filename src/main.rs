@@ -1,4 +1,4 @@
-use std::io;
+use std::io::{stdout, Write};
 use std::thread;
 use std::time::Duration;
 use crossterm::{
@@ -8,46 +8,25 @@ use crossterm::{
     terminal::{enable_raw_mode, Clear, ClearType},
     ExecutableCommand,
 };
-use std::io::Write;
 
-fn main() -> io::Result<()> {
+fn main() -> crossterm::Result<()> {
     enable_raw_mode()?;
-    let mut stdout = io::stdout();
+
+    let mut stdout = stdout();
     execute!(stdout, Clear(ClearType::All))?;
 
-    let frames = vec![
-        r#"
-/\_/\
-           ( o.o )
-                     >   ^ <"#,
-        r#"
-/\_/\
-           ( o.o )
-                      >  ^ <"#,
-        r#"
-/\_/\
-           ( o.o )
-                       > ^ <"#,
-        r#"
-/\_/\
-           ( o.o )
-                      >  ^ <"#,
-    ];
+    let total_steps = 30;
+    for step in 0..=total_steps {
+        let progress_bar = "=".repeat(step) + &" ".repeat(total_steps - step);
 
-    animate(&mut stdout, &frames, Duration::from_millis(250))
-}
+        stdout.execute(cursor::MoveTo(0, 0))?;
+        stdout.execute(SetForegroundColor(Color::Yellow))?;
+        stdout.execute(Print(format!("[{}] {}%", progress_bar, step * 100 / total_steps)))?;
+        stdout.execute(ResetColor)?;
+        stdout.flush()?;
 
-fn animate<W: Write>(stdout: &mut W, frames: &[&str], delay: Duration) -> io::Result<()> {
-    loop {
-        for frame in frames {
-            stdout.execute(cursor::MoveTo(0, 0))?;
-            stdout.execute(ResetColor)?;
-            stdout.execute(Clear(ClearType::All))?;
-            stdout.execute(SetForegroundColor(Color::Yellow))?;
-            stdout.execute(Print(frame))?;
-            stdout.flush()?;
-
-            thread::sleep(delay);
-        }
+        thread::sleep(Duration::from_millis(100));
     }
+
+    Ok(())
 }
